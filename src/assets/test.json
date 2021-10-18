@@ -1,0 +1,6 @@
+{
+  "key": "val",
+  "nested": { "nestedKey": "val" },
+  "stringArray": ["a", "b", "c"],
+  "objArray": [{ "o": "k" }, { "o": "k" }]
+}
