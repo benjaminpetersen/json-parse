@@ -1,6 +1,9 @@
 import { IModel } from './store';
 import { get, lastElement, popOff } from './utils';
 
+const boolRe = /[truefalse]/i
+const numRe = /[0-9\.]/
+
 export const update = (char: string, model: IModel): IModel => {
   const lastKey = lastElement(model.explorationStack);
   const upOne = popOff(model.explorationStack);
@@ -62,26 +65,20 @@ export const update = (char: string, model: IModel): IModel => {
       get(generatedObject, upOne)[lastKey] = word;
       return { ..._model, explorationStack: upOne };
     default:
-      if (model.building === 'none') {
-        if (/\d/.exec(char))
+      if (model.building === 'none' && numRe.exec(char))
           return { ...model, chars: [char], building: 'number' };
-        if (char === 't' || char === 'f')
+      else if (model.building === 'none' && boolRe.exec(char))
           return { ...model, chars: [char], building: 'boolean' };
-      }
-      if (['number', 'boolean'].includes(model.building)) {
-        if (/[truefalse0-9\.]/.exec(char))
+      else if (['number', 'boolean'].includes(model.building) && (numRe.exec(char) || boolRe.exec(char)))
           return { ...model, chars: [...model.chars, char] };
-        // Done building these types:
-        if (model.building === 'number') {
-          const num = Number(model.chars.join(''));
-          get(model.generatedObject, upOne)[lastKey] = num;
-          return { ...model, building: 'none', explorationStack: upOne };
-        }
-        if (model.building === 'boolean') {
-          const bool = model.chars[0] === 't' ? true : false;
-          get(model.generatedObject, upOne)[lastKey] = bool;
-          return { ...model, building: 'none', explorationStack: upOne };
-        }
+      else if (model.building === 'number' && !numRe.exec(char)){
+        const num = Number(model.chars.join(''));
+        get(model.generatedObject, upOne)[lastKey] = num;
+        return { ...model, building: 'none', explorationStack: upOne };
+      } else if (model.building === 'boolean' && !boolRe.exec(char)) {
+        const bool = model.chars[0] === 't' ? true : false;
+        get(model.generatedObject, upOne)[lastKey] = bool;
+        return { ...model, building: 'none', explorationStack: upOne };
       }
       return model;
   }
