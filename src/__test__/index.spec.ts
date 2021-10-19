@@ -4,11 +4,14 @@ import testJSON from '../assets/test.json';
 
 describe('Parse an object correctly', () => {
   it('Should read test.json', () => {
-    return main({ jsonPath: __dirname + '/../assets/test.json' }).then(
-      parsedObj => {
-        expect(parsedObj).toStrictEqual(testJSON);
+    return main({
+      jsonPath: __dirname + '/../assets/test.json',
+      view: args => {
+        console.log(args[0]);
       },
-    );
+    }).then(parsedObj => {
+      expect(parsedObj).toStrictEqual(testJSON);
+    });
   });
   //  Something isn't working with this test just yet.
   //   it('Should read the lottie file', () => {

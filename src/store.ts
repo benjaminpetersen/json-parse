@@ -1,26 +1,19 @@
 import { BehaviorSubject } from 'rxjs';
 export type ExplorationStack = (string | number)[]; // numbers for array indices
 export type IModel = {
-  squareOpen: number;
-  squareClose: number;
-  curlyOpen: number;
-  curlyClose: number;
-  qouteCount: number;
-  // lodash style key array -> ['key','array', '0', 'nestedArrayKey'];
+  // A lodash style key array -> ['key','array', '0', 'nestedArrayKey'];
+  numArrays: number;
+  numObjects: number;
   explorationStack: ExplorationStack;
   chars: string[];
-  // Mutable built object... bad practice
   generatedObject: any;
-  building: 'string' | 'number' | 'boolean' | 'none';
+  building: 'key' | 'string' | 'number' | 'boolean' | 'none';
 };
 
 let initialModel: IModel = {
+  numArrays: 0,
+  numObjects: 0,
   building: 'none',
-  squareOpen: 0,
-  squareClose: 0,
-  curlyOpen: 0,
-  curlyClose: 0,
-  qouteCount: 0,
   generatedObject: {},
   explorationStack: [],
   chars: [],

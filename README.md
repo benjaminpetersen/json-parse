@@ -1,3 +1,3 @@
-# `reactive-cli`
+# `json-parse`
 
-> Functional reactive programming in TS
+> A simple json parser in a Functionally reactive way
