@@ -1,25 +1,27 @@
 import { IModel } from './store';
 import { get, lastElement, popOff } from './utils';
+import cloneDeep from 'lodash.clonedeep';
 
-const boolRe = /[truefalse]/i
-const numRe = /[0-9\.]/
+const boolRe = /[truefalse]/i;
+const numRe = /[0-9\.]/;
 
 export const update = (char: string, model: IModel): IModel => {
   const lastKey = lastElement(model.explorationStack);
   const upOne = popOff(model.explorationStack);
-  const { generatedObject } = model;
+  const generatedObject = cloneDeep(model.generatedObject);
   if (model.qouteCount % 2 === 1 && char !== '"')
     return { ...model, chars: [...model.chars, char] };
   switch (char) {
     case '{':
       if (lastKey !== undefined) get(generatedObject, upOne)[lastKey] = {};
-      return { ...model, curlyOpen: ++model.curlyOpen };
+      return { ...model, curlyOpen: ++model.curlyOpen, generatedObject };
     case '}':
       return {
         ...model,
         curlyClose: ++model.curlyClose,
         explorationStack:
           typeof lastKey === 'number' ? [...upOne, lastKey + 1] : upOne,
+        generatedObject,
       };
     case '[':
       get(generatedObject, upOne)[lastKey] = [];
@@ -27,6 +29,7 @@ export const update = (char: string, model: IModel): IModel => {
         ...model,
         squareOpen: ++model.squareOpen,
         explorationStack: [...model.explorationStack, 0],
+        generatedObject,
       };
     case ']':
       return {
@@ -60,25 +63,39 @@ export const update = (char: string, model: IModel): IModel => {
         return {
           ..._model,
           explorationStack: [...upOne, lastKey + 1],
+          generatedObject,
         };
       }
       get(generatedObject, upOne)[lastKey] = word;
-      return { ..._model, explorationStack: upOne };
+      return { ..._model, explorationStack: upOne, generatedObject };
     default:
       if (model.building === 'none' && numRe.exec(char))
-          return { ...model, chars: [char], building: 'number' };
+        return { ...model, chars: [char], building: 'number' };
       else if (model.building === 'none' && boolRe.exec(char))
-          return { ...model, chars: [char], building: 'boolean' };
-      else if (['number', 'boolean'].includes(model.building) && (numRe.exec(char) || boolRe.exec(char)))
-          return { ...model, chars: [...model.chars, char] };
-      else if (model.building === 'number' && !numRe.exec(char)){
+        return { ...model, chars: [char], building: 'boolean' };
+      else if (
+        ['number', 'boolean'].includes(model.building) &&
+        (numRe.exec(char) || boolRe.exec(char))
+      )
+        return { ...model, chars: [...model.chars, char] };
+      else if (model.building === 'number' && !numRe.exec(char)) {
         const num = Number(model.chars.join(''));
-        get(model.generatedObject, upOne)[lastKey] = num;
-        return { ...model, building: 'none', explorationStack: upOne };
+        get(generatedObject, upOne)[lastKey] = num;
+        return {
+          ...model,
+          building: 'none',
+          explorationStack: upOne,
+          generatedObject,
+        };
       } else if (model.building === 'boolean' && !boolRe.exec(char)) {
         const bool = model.chars[0] === 't' ? true : false;
-        get(model.generatedObject, upOne)[lastKey] = bool;
-        return { ...model, building: 'none', explorationStack: upOne };
+        get(generatedObject, upOne)[lastKey] = bool;
+        return {
+          ...model,
+          building: 'none',
+          explorationStack: upOne,
+          generatedObject,
+        };
       }
       return model;
   }

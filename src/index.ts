@@ -3,7 +3,13 @@ import { update } from './update';
 import { createReadStream, get } from './utils';
 import { view } from './view';
 
-export const main = async (view: (args: [IModel, IModel])=>void, jsonPath: string) => {
+export const main = async ({
+  view,
+  jsonPath,
+}: {
+  view?: (args: [IModel, IModel]) => void;
+  jsonPath: string;
+}) => {
   const pr = new Promise(async (res, rej) => {
     const rs = createReadStream(jsonPath);
     rs.on('error', rej);
@@ -20,14 +26,14 @@ export const main = async (view: (args: [IModel, IModel])=>void, jsonPath: strin
         }
       }
     });
-    rs.on('close', ()=>{
-      const [_,model]=storeSubject.getValue();
+    rs.on('close', () => {
+      const [_, model] = storeSubject.getValue();
       res(model.generatedObject);
     });
-  })
-  storeSubject.subscribe(view);
-  return pr
-}
+  });
+  if (view) storeSubject.subscribe(view);
+  return pr;
+};
 
 if (require.main === module) {
   const jsonPath = process.argv[2];
@@ -35,5 +41,7 @@ if (require.main === module) {
     throw new Error(
       'Please specify the path to a JSON file after "node index.js"',
     );
-  main(view, jsonPath).then(()=>console.log("DONE PARSING")).catch(console.error)
+  main({ view, jsonPath })
+    .then(() => console.log('DONE PARSING'))
+    .catch(console.error);
 }
