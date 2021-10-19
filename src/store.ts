@@ -32,7 +32,7 @@ export type IModel = {
 
 let initialModel: IModel = {
   numArrays: 0,
-  numObjects: 0,
+  numObjects: 1,
   building: 'none',
   generatedObject: new GeneratedObject({}),
   explorationStack: [],

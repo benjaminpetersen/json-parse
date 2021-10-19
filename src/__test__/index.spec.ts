@@ -6,9 +6,15 @@ describe('Parse an object correctly', () => {
   it('Should read test.json', () => {
     return main({
       jsonPath: __dirname + '/../assets/test.json',
-      //   view: ([prevState, state]) => {
-      //     console.log(state);
-      //   },
+      view: ([prevState, state]) => {
+        if (
+          prevState.numArrays !== state.numArrays ||
+          prevState.numObjects !== state.numObjects
+        )
+          console.log(
+            `Objects: ${state.numObjects},\nArrays: ${state.numArrays}\n\n`,
+          );
+      },
     }).then(parsedObj => {
       expect(parsedObj).toStrictEqual(testJSON);
     });
