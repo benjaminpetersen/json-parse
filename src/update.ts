@@ -1,6 +1,5 @@
 import { IModel } from './store';
 import { get, lastElement, popOff } from './utils';
-import cloneDeep from 'lodash.clonedeep';
 
 const boolRe = /[truefalse]/i;
 const numRe = /[0-9\.]/;
@@ -34,8 +33,8 @@ const cast = (building: IModel['building'], joinedChars: string) => {
 export const update = (char: string, model: IModel): IModel => {
   const lastKey = lastElement(model.explorationStack);
   const upOne = popOff(model.explorationStack);
-  const generatedObject = cloneDeep(model.generatedObject);
-  const terminus = get(generatedObject, model.explorationStack);
+  const { generatedObject } = model;
+  const terminus = generatedObject.get(model.explorationStack);
 
   // If we're accumulating characters of a boolean/number/string/key
   if (model.building !== 'none') {
@@ -50,14 +49,16 @@ export const update = (char: string, model: IModel): IModel => {
           chars: [],
           explorationStack: [...model.explorationStack, joinedChars],
         };
-      get(generatedObject, upOne)[lastKey] = cast(model.building, joinedChars);
       return {
         ...model,
         building: 'none',
         explorationStack:
           typeof lastKey === 'number' ? [...upOne, lastKey + 1] : upOne,
         chars: [],
-        generatedObject,
+        generatedObject: generatedObject.updateValue(
+          model.explorationStack,
+          cast(model.building, joinedChars),
+        ),
       };
     }
   }
@@ -65,8 +66,14 @@ export const update = (char: string, model: IModel): IModel => {
   switch (char) {
     case '{':
       if (model.explorationStack.length === 0) return model;
-      get(generatedObject, upOne)[lastKey] = {};
-      return { ...model, generatedObject, numObjects: model.numObjects + 1 };
+      return {
+        ...model,
+        numObjects: model.numObjects + 1,
+        generatedObject: generatedObject.updateValue(
+          model.explorationStack,
+          {},
+        ),
+      };
     case '}':
       return {
         ...model,
@@ -74,12 +81,14 @@ export const update = (char: string, model: IModel): IModel => {
           typeof lastKey === 'number' ? [...upOne, lastKey + 1] : upOne,
       };
     case '[':
-      get(generatedObject, upOne)[lastKey] = [];
       return {
         ...model,
         explorationStack: [...model.explorationStack, 0],
         numArrays: model.numArrays + 1,
-        generatedObject,
+        generatedObject: generatedObject.updateValue(
+          model.explorationStack,
+          [],
+        ),
       };
     case ']':
       return {

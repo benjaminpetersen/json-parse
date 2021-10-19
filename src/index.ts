@@ -10,7 +10,7 @@ export const main = async ({
   view?: (args: [IModel, IModel]) => void;
   jsonPath: string;
 }) => {
-  const pr = new Promise(async (res, rej) => {
+  const pr = new Promise<IModel['generatedObject']>((res, rej) => {
     const rs = createReadStream(jsonPath);
     rs.on('error', rej);
     rs.on('data', d => {
@@ -32,7 +32,8 @@ export const main = async ({
     });
   });
   if (view) storeSubject.subscribe(view);
-  return pr;
+  const gennedObj = await pr;
+  return gennedObj.get();
 };
 
 if (require.main === module) {
