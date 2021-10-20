@@ -2,6 +2,8 @@ import storeSubject, { IModel } from './store';
 import { update } from './update';
 import { createReadStream, get } from './utils';
 import { view } from './view';
+import { defer, repeat } from 'rxjs';
+import inquirer from 'inquirer';
 
 export const main = async ({
   view,
@@ -31,18 +33,34 @@ export const main = async ({
       res(model.generatedObject);
     });
   });
-  if (view) storeSubject.subscribe(view);
+  let sub = view ? storeSubject.subscribe(view) : undefined;
   const gennedObj = await pr;
+  if (sub) sub.unsubscribe();
   return gennedObj.get();
 };
 
 if (require.main === module) {
-  const jsonPath = process.argv[2];
-  if (jsonPath === undefined)
-    throw new Error(
-      'Please specify the path to a JSON file after "node index.js"',
+  const processCommand = (cmd: any) => {
+    return main({ jsonPath: cmd.value, view });
+  };
+
+  const source = defer(() =>
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'value',
+        message: 'Enter a JSON path to parse:',
+      },
+    ]),
+  );
+
+  const example = source.pipe(repeat());
+
+  const subscription = example.subscribe(async cmd => {
+    const val = await processCommand(cmd).catch(e =>
+      console.error('caught an error', e),
     );
-  main({ view, jsonPath })
-    .then(() => console.log('DONE PARSING'))
-    .catch(console.error);
+    console.log('done::', val);
+  });
+  setTimeout(() => subscription.unsubscribe(), 100000);
 }

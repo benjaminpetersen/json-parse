@@ -1,5 +1,4 @@
-import { IModel } from "./store";
-import { get } from "./utils";
+import { IModel } from './store';
 
 export const view = ([prevModel, model]: [IModel, IModel]) => {
   if (prevModel.explorationStack.length > model.explorationStack.length) {
@@ -7,7 +6,7 @@ export const view = ([prevModel, model]: [IModel, IModel]) => {
       'key added ->',
       prevModel.explorationStack.join('.'),
       ':',
-      get(model.generatedObject, prevModel.explorationStack),
+      model.generatedObject.get(prevModel.explorationStack),
     );
   }
 };
